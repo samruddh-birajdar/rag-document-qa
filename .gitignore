@@ -21,4 +21,4 @@ Thumbs.db
 # App output
 *.log
 data/*.pdf
-!data/.gitkeep
+!data/.gitkeep.env

@@ -2,5 +2,6 @@ streamlit
 PyPDF2
 faiss-cpu
 numpy
-requests
+google-genai
+python-dotenv
 sentence-transformers
