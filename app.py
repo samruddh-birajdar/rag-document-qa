@@ -23,7 +23,6 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 # Default similarity threshold
 SIMILARITY_THRESHOLD = 0.3
 
-
 # ---------- PDF handling ----------
 
 def extract_text_with_pages(pdf_file):
@@ -116,8 +115,7 @@ Question:
 Answer:
 """
     
-    # Retry logic for 503 errors (Google servers being busy)
-    max_retries = 3
+    max_retries = 4
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
@@ -126,11 +124,17 @@ Answer:
             )
             return response.text
         except Exception as e:
-            if "503" in str(e) or "UNAVAILABLE" in str(e):
+            error_msg = str(e)
+            # If Google is busy (503) or rate limiting (429), wait and retry
+            if "503" in error_msg or "UNAVAILABLE" in error_msg or "429" in error_msg:
                 if attempt < max_retries - 1:
-                    time.sleep(2)  # Wait 2 seconds before trying again
+                    time.sleep(3 * (attempt + 1))  # Wait 3s, then 6s, then 9s
                     continue
-            return f"Error communicating with Gemini: {e}"
+            
+            # If it's a different error, or we ran out of retries, show a clean message
+            return "The AI server is currently experiencing high traffic. Please wait a moment and try clicking your question again."
+            
+    return "The AI server is currently experiencing high traffic. Please wait a moment and try clicking your question again."
 
 
 # ---------- UI ----------
